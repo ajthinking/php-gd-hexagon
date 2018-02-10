@@ -18,6 +18,8 @@ class CreateTilesTable extends Migration
             $table->string('background_type');
             $table->string('overlay_type');
             $table->integer('duration')->unsigned();
+            $table->integer('image_x_resolution')->unsigned()->default(\App\Hexagon::DEFAULT_X_RESOLUTION);
+            $table->integer('image_y_resolution')->unsigned()->default(floor(\App\Hexagon::DEFAULT_X_RESOLUTION*sqrt(3)/2));            
             $table->timestamps();
         });
     }
