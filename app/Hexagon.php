@@ -39,15 +39,21 @@ class Hexagon {
         return $coordinates->toArray();
     }
 
-    public function segment() {
+    public function segment($duration) {
         $startX = 0.5;
         $startY = 0;
         $overlay_values = collect([
-            $startX,  $startY,  // Point 1 (x, y)
-            $startX * cos(1*pi()/3) - $startY*sin(1*pi()/3),  $startY*cos(1*pi()/3)+$startX*sin(1*pi()/3), // Point 2 (x, y)
-            $startX * cos(2*pi()/3) - $startY*sin(2*pi()/3),  $startY*cos(2*pi()/3)+$startX*sin(2*pi()/3),  // Point 3 (x, y)
-            0, 0
-        ]);        
+            $startX,  $startY,
+            //$startX * cos(1*pi()/3) - $startY*sin(1*pi()/3),  $startY*cos(1*pi()/3)+$startX*sin(1*pi()/3),
+        ]);
+        
+        for($i = 1; $i <= $duration; $i++) {
+             $overlay_values->push($startX * cos($i*pi()/3) - $startY*sin($i*pi()/3));
+             $overlay_values->push($startY*cos($i*pi()/3)+$startX*sin($i*pi()/3));
+        }
+        $overlay_values->push(0);
+        $overlay_values->push(0);
+
         $overlay_values = $overlay_values->map(function($value, $key) {
             if($key % 2 == 0) {
                 return ($value + 0.5)*$this->image_x_resolution;
@@ -74,7 +80,7 @@ class Hexagon {
         return "OK";       
     }
 
-    public function saveSegmentMask() {
+    public function saveSegmentMask($t) {
         // create image
         $image = imagecreatetruecolor($this->image_x_resolution, $this->image_y_resolution);
 
@@ -85,7 +91,7 @@ class Hexagon {
 
         // transparency, background and overlay
         imagefilledrectangle($image, 0, 0, $this->image_x_resolution - 1, $this->image_y_resolution -1, $bgColor);
-        imagefilledpolygon($image, $this->segment(), sizeof($this->segment())/2, $maskColor);
+        imagefilledpolygon($image, $this->segment($t->duration), sizeof($this->segment($t->duration))/2, $maskColor);
         imagepng($image, "/home/anders/Code/hex/public/img/segmentMask.png");
         return "OK";        
     }

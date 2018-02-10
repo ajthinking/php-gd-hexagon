@@ -16,8 +16,8 @@ Route::get('/', function () {
 });
 
 Route::get('/test', function () {
-    $t = \App\Tile::first();    
-    imagepng($t->saveImage(), "/home/anders/Code/hex/public/img/" . $t->name() . ".png");
+    $tile = \App\Tile::first();    
+    imagepng($tile->image(), "/home/anders/Code/hex/public/img/" . $t->name() . ".png");
 });
 
 
@@ -30,7 +30,8 @@ Route::get('/saveHexagonMask', function () {
 });
 
 Route::get('/saveSegmentMask', function () {
-    (new \App\Hexagon)->saveSegmentMask();
+    $tile = \App\Tile::first();
+    (new \App\Hexagon)->saveSegmentMask($tile);
 });
 
 Route::get('overlay', function () {
@@ -57,3 +58,31 @@ Route::get('overlay', function () {
     imagepng($result, "/home/anders/Code/hex/public/img/myFirst.png");
 
 });
+
+Route::get('/saveAll', function () {
+    $tiles = \App\Tile::all();
+    $tiles->each(function($tile) {
+        $background = imagecreatefromjpeg( '/home/anders/Code/hex/public/img/terrain/' . $tile->background_type . '.jpg' );
+        $hexagonMask = imagecreatefrompng( '/home/anders/Code/hex/public/img/hexagonMask.png' );
+        $background = \App\Tile::imagealphamask( $background, $hexagonMask, $background );
+
+        $source = imagecreatefromjpeg( '/home/anders/Code/hex/public/img/terrain/' . $tile->overlay_type .'.jpg' );
+        (new \App\Hexagon)->saveSegmentMask($tile);
+        $segmentMask = imagecreatefrompng( '/home/anders/Code/hex/public/img/segmentMask.png' );
+        $overlay = \App\Tile::imagealphamask( $source, $segmentMask, $source );
+
+        imagepng($background, "/home/anders/Code/hex/public/img/layer1.png");
+        imagepng($overlay, "/home/anders/Code/hex/public/img/layer2.png");
+    
+        $result = $background;
+    
+        imagecopy($result, $background,0,0,0,0,$tile->image_x_resolution, $tile->image_y_resolution);
+        imagecopy($result, $overlay,0,0,0,0,$tile->image_x_resolution, $tile->image_y_resolution);
+        imagepng($result, "/home/anders/Code/hex/public/img/output/".  rand(1,1000) ."png");        
+    });
+
+    
+
+
+});
+

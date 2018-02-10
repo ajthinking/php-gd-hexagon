@@ -15,7 +15,7 @@ class Tile extends Model
         $this->hexagon = new Hexagon();
     }
 
-    public function saveImage() {
+    public function image() {
         // create image
         $image = imagecreatetruecolor($this->image_x_resolution, $this->image_y_resolution);
 
@@ -100,6 +100,34 @@ class Tile extends Model
     
     public function getBaseImage() {
         return imagecreatetruecolor($this->image_x_resolution, $this->image_y_resolution);
+    }
+
+    public static function saveAll() {
+        $tiles = \App\Tile::where("id", "<", 2)->get();
+        $tiles->each(function($tile) {
+            $background = imagecreatefromjpeg( '/home/anders/Code/hex/public/img/terrain/' . $tile->background_type . '.jpg' );
+            $hexagonMask = imagecreatefrompng( '/home/anders/Code/hex/public/img/hexagonMask.png' );
+            $background = \App\Tile::imagealphamask( $background, $hexagonMask, $background );
+    
+            $source = imagecreatefromjpeg( '/home/anders/Code/hex/public/img/terrain/' . $tile->overlay_type .'.jpg' );
+            (new \App\Hexagon)->saveSegmentMask($tile);
+            $segmentMask = imagecreatefrompng( '/home/anders/Code/hex/public/img/segmentMask.png' );
+            $overlay = \App\Tile::imagealphamask( $source, $segmentMask, $source );
+    
+            imagepng($background, "/home/anders/Code/hex/public/img/layer1.png");
+            imagepng($overlay, "/home/anders/Code/hex/public/img/layer2.png");
+        
+            $result = $background;
+        
+            imagecopy($result, $background,0,0,0,0,$tile->image_x_resolution, $tile->image_y_resolution);
+            imagecopy($result, $overlay,0,0,0,0,$tile->image_x_resolution, $tile->image_y_resolution);
+
+            imagesetthickness($result, 20);
+            imageline($result, 1500, 0.5*1500*sqrt(3)/2, 700, 0.5*1500*sqrt(3)/2, imagecolorallocate($result, 92,64,51));
+
+
+            imagepng($result, "/home/anders/Code/hex/public/img/output/".  rand(1,1000) .".png");        
+        });        
     }
 
         
