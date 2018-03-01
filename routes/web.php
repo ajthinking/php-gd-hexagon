@@ -13,6 +13,7 @@
 
 Route::get('/', function () {
     return view('welcome');
+    //dd(\App\Tile::all());
 });
 
 Route::get('/test', function () {
@@ -80,9 +81,7 @@ Route::get('/saveAll', function () {
         imagecopy($result, $overlay,0,0,0,0,$tile->image_x_resolution, $tile->image_y_resolution);
         imagepng($result, "/home/anders/Code/hex/public/img/output/".  rand(1,1000) ."png");        
     });
-
-    
-
-
 });
+
+
 
